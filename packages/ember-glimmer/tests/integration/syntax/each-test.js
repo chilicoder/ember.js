@@ -94,6 +94,21 @@ class ArrayDelegate {
   }
 }
 
+class SetDelegate extends ArrayDelegate {
+  constructor(set) {
+    let array = [];
+    set.forEach(value => array.push(value));
+    super(array, set);
+    this._set = set;
+  }
+
+  arrayContentDidChange() {
+    this._set.clear();
+    this._array.forEach(value => this._set.add(value));
+    super.arrayContentDidChange();
+  }
+}
+
 class ForEachable extends ArrayDelegate {
   get length() {
     return this._array.length;
@@ -145,7 +160,9 @@ const FALSY_CASES = [
 ];
 
 if (HAS_NATIVE_SYMBOL) {
+  TRUTHY_CASES.push(new Set(['hello']));
   TRUTHY_CASES.push(new ArrayIterable(['hello']));
+  FALSY_CASES.push(new Set());
   FALSY_CASES.push(new ArrayIterable([]));
 }
 
@@ -943,6 +960,23 @@ moduleFor('Syntax test: {{#each}} with array-like objects implementing forEach',
 });
 
 if (HAS_NATIVE_SYMBOL) {
+  moduleFor('Syntax test: {{#each}} with native Set', class extends EachTest {
+
+    createList(items) {
+      let set = new Set(items);
+      return { list: set, delegate: new SetDelegate(set) };
+    }
+
+    ['@test it can render duplicate primitive items'](assert) {
+      assert.ok(true, 'not supported by Set');
+    }
+
+    ['@test it can render duplicate objects'](assert) {
+      assert.ok(true, 'not supported by Set');
+    }
+
+  });
+
   moduleFor('Syntax test: {{#each}} with array-like objects implementing Symbol.iterator', class extends EachTest {
 
     createList(items) {
